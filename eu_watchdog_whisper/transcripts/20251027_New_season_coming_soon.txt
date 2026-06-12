@@ -1,0 +1,8 @@
+# 20251027_New_season_coming_soon
+
+Source file: 20251027_New_season_coming_soon.m4a
+Model: whisper-medium
+
+---
+
+Hi, welcome to a new season of EU Watchdog Radio. My name is Laura and I work in Counterbalance. My name is Isabella and I also work at Counterbalance. I'm Joana and I work at Corporate Europe Observatory. And I'm Marcella, also from Sio. And together we make a great podcast called EU Watchdog Radio, which is about EU policies, explained to people who have no interest in EU policies. This is our new season and we really hope you'll enjoy it. Yeah, so stay tuned. Ciao, bye.

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ask This Podcast</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink:       #0f0f0f;
+      --muted:     #6b6b6b;
+      --rule:      #e2e2e2;
+      --bg:        #fafaf8;
+      --card:      #ffffff;
+      --accent:    #1a1a1a;
+      --highlight: #f0ede6;
+      --radius:    6px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      border-bottom: 1px solid var(--rule);
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+    }
+
+    .wordmark {
+      font-family: 'Instrument Serif', serif;
+      font-size: 1.4rem;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    .wordmark em {
+      font-style: italic;
+      color: var(--muted);
+    }
+
+    /* ── Main layout ── */
+    main {
+      flex: 1;
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 4rem;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      margin-bottom: 2.5rem;
+    }
+
+    .hero h1 {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.75rem;
+    }
+
+    .hero h1 em {
+      font-style: italic;
+      color: var(--muted);
+    }
+
+    .hero p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* ── Podcast picker ── */
+    .picker-label {
+      font-size: 0.78rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .podcast-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .podcast-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--rule);
+      border-radius: 999px;
+      background: var(--card);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      cursor: pointer;
+      color: var(--ink);
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .podcast-btn:hover {
+      border-color: var(--ink);
+    }
+
+    .podcast-btn.selected {
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
+    }
+
+    /* ── Ask form ── */
+    .ask-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+
+    .ask-input {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      border: 1px solid var(--rule);
+      border-radius: var(--radius);
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      background: var(--card);
+      color: var(--ink);
+      resize: none;
+      outline: none;
+      transition: border-color 0.15s;
+      line-height: 1.5;
+    }
+
+    .ask-input:focus {
+      border-color: var(--ink);
+    }
+
+    .ask-input::placeholder { color: #aaa; }
+
+    .ask-btn {
+      align-self: flex-end;
+      padding: 0.6rem 1.5rem;
+      background: var(--ink);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .ask-btn:hover  { opacity: 0.85; }
+    .ask-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Answer area ── */
+    .answer-wrap {
+      display: none;
+      border-top: 1px solid var(--rule);
+      padding-top: 1.75rem;
+    }
+
+    .answer-wrap.visible { display: block; }
+
+    .answer-label {
+      font-size: 0.78rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .answer-text {
+      font-size: 1rem;
+      line-height: 1.75;
+      color: var(--ink);
+      white-space: pre-wrap;
+    }
+
+    .typing-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      background: var(--ink);
+      margin-left: 2px;
+      vertical-align: text-bottom;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    .error-msg {
+      color: #c0392b;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+
+    /* ── Suggested questions ── */
+    .suggestions {
+      margin-top: 1.5rem;
+    }
+
+    .suggestions p {
+      font-size: 0.78rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .suggestion-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .suggestion-item {
+      font-size: 0.875rem;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0.3rem 0;
+      border-bottom: 1px solid transparent;
+      transition: color 0.15s;
+    }
+
+    .suggestion-item:hover { color: var(--ink); }
+
+    .suggestion-item::before {
+      content: "→ ";
+      font-style: normal;
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--rule);
+      padding: 1rem 2rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      header { padding: 1rem; }
+      main   { padding: 2rem 1rem 3rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="wordmark" href="/">Ask <em>This</em> Podcast</a>
+</header>
+
+<main>
+  <div class="hero">
+    <h1>Every episode.<br><em>Any question.</em></h1>
+    <p>Ask anything — the AI answers from the actual transcripts.</p>
+  </div>
+
+  <!-- Podcast picker (populated from API) -->
+  <div id="picker-section">
+    <div class="picker-label">Choose a podcast</div>
+    <div class="podcast-grid" id="podcast-grid">
+      <span style="color: var(--muted); font-size:0.9rem;">Loading...</span>
+    </div>
+  </div>
+
+  <!-- Question input -->
+  <div class="ask-form">
+    <textarea
+      id="question-input"
+      class="ask-input"
+      rows="2"
+      placeholder="What did they say about..."></textarea>
+    <button id="ask-btn" class="ask-btn" disabled>Ask</button>
+  </div>
+
+  <!-- Answer -->
+  <div class="answer-wrap" id="answer-wrap">
+    <div class="answer-label">Answer</div>
+    <div class="answer-text" id="answer-text"></div>
+  </div>
+
+  <!-- Suggested questions (shown after podcast is selected) -->
+  <div class="suggestions" id="suggestions" style="display:none;">
+    <p>Try asking</p>
+    <div class="suggestion-list" id="suggestion-list"></div>
+  </div>
+</main>
+
+<footer>
+  Answers are generated from podcast transcripts. Always verify important claims.
+</footer>
+
+<script>
+  // ── Config ──────────────────────────────────────────────────────────────────
+  // Change this to your deployed API URL (e.g. https://api.yourapp.com)
+  const API_BASE = "http://localhost:8000";
+
+  // Example suggested questions per podcast slug
+  // Customise these per show once you know what topics come up
+  const SUGGESTIONS = {
+    "eu-watchdog-radio": [
+      "What is corporate capture, and what examples does the show give?",
+      "What role does the European Investment Bank play in EU climate policy?",
+      "How do Big Tech lobbyists influence EU regulation?",
+      "What did the show say about green hydrogen?",
+    ],
+    "default": [
+      "What are the main themes discussed across episodes?",
+      "What guests have appeared on the show?",
+    ]
+  };
+
+  // ── State ───────────────────────────────────────────────────────────────────
+  let selectedPodcast = null;
+
+  // ── Elements ─────────────────────────────────────────────────────────────────
+  const podcastGrid   = document.getElementById("podcast-grid");
+  const questionInput = document.getElementById("question-input");
+  const askBtn        = document.getElementById("ask-btn");
+  const answerWrap    = document.getElementById("answer-wrap");
+  const answerText    = document.getElementById("answer-text");
+  const suggestionsEl = document.getElementById("suggestions");
+  const suggestionList= document.getElementById("suggestion-list");
+
+  // ── Load podcasts ────────────────────────────────────────────────────────────
+  async function loadPodcasts() {
+    try {
+      const resp = await fetch(`${API_BASE}/podcasts`);
+      const podcasts = await resp.json();
+
+      podcastGrid.innerHTML = "";
+      podcasts.forEach(podcast => {
+        const btn = document.createElement("button");
+        btn.className = "podcast-btn";
+        btn.textContent = podcast.title;
+        btn.dataset.slug = podcast.slug;
+        btn.addEventListener("click", () => selectPodcast(podcast, btn));
+        podcastGrid.appendChild(btn);
+      });
+
+      // Auto-select if only one podcast
+      if (podcasts.length === 1) {
+        const btn = podcastGrid.querySelector(".podcast-btn");
+        selectPodcast(podcasts[0], btn);
+      }
+    } catch (e) {
+      podcastGrid.innerHTML = `<span style="color:var(--muted)">Could not load podcasts.</span>`;
+    }
+  }
+
+  function selectPodcast(podcast, btn) {
+    selectedPodcast = podcast;
+    document.querySelectorAll(".podcast-btn").forEach(b => b.classList.remove("selected"));
+    btn.classList.add("selected");
+    askBtn.disabled = false;
+    questionInput.placeholder = `Ask anything about "${podcast.title}"...`;
+    showSuggestions(podcast.slug);
+  }
+
+  function showSuggestions(slug) {
+    const items = SUGGESTIONS[slug] || SUGGESTIONS["default"];
+    suggestionList.innerHTML = "";
+    items.forEach(q => {
+      const el = document.createElement("div");
+      el.className = "suggestion-item";
+      el.textContent = q;
+      el.addEventListener("click", () => {
+        questionInput.value = q;
+        handleAsk();
+      });
+      suggestionList.appendChild(el);
+    });
+    suggestionsEl.style.display = "block";
+  }
+
+  // ── Ask ──────────────────────────────────────────────────────────────────────
+  async function handleAsk() {
+    const question = questionInput.value.trim();
+    if (!question || !selectedPodcast) return;
+
+    // UI: loading state
+    askBtn.disabled = true;
+    askBtn.textContent = "Asking...";
+    answerWrap.classList.add("visible");
+    answerText.innerHTML = '<span class="typing-cursor"></span>';
+
+    try {
+      const resp = await fetch(`${API_BASE}/ask`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          podcast_slug: selectedPodcast.slug,
+          question:     question
+        })
+      });
+
+      if (!resp.ok) throw new Error("Server error");
+
+      // Stream the response
+      const reader  = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let   answer  = "";
+
+      answerText.innerHTML = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        answer += decoder.decode(value, { stream: true });
+        answerText.textContent = answer;
+      }
+
+    } catch (err) {
+      answerText.innerHTML = `<span class="error-msg">Something went wrong. Please try again.</span>`;
+    } finally {
+      askBtn.disabled = false;
+      askBtn.textContent = "Ask";
+    }
+  }
+
+  // ── Events ───────────────────────────────────────────────────────────────────
+  askBtn.addEventListener("click", handleAsk);
+
+  questionInput.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleAsk();
+    }
+  });
+
+  // ── Init ─────────────────────────────────────────────────────────────────────
+  loadPodcasts();
+</script>
+</body>
+</html>

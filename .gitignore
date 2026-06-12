@@ -1,0 +1,6 @@
+.env
+__pycache__/
+.venv/
+eu_watchdog_whisper/episodes/
+*.mp3
+transcription.log*

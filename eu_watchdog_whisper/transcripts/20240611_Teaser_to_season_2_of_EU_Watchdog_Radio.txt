@@ -1,0 +1,8 @@
+# 20240611_Teaser_to_season_2_of_EU_Watchdog_Radio
+
+Source file: 20240611_Teaser_to_season_2_of_EU_Watchdog_Radio.m4a
+Model: whisper-medium
+
+---
+
+Hi and welcome to the new season of EU Watchdog Radio, a podcast by Counterbalance and Corporate Europe Observatory. As you will see, or better, as you will hear, we reshuffle the podcast a bit. I'm Joana Lossin, comms officer at Corporate Europe Observatory. I am Marcella Via, press officer at Corporate Europe Observatory. And I'm Chiara Casati, comms officer at Counterbalance. In this new season, we will unveil for you stories from the world of financial institutions, challenging their harmful decisions and exploring possible alternatives. We will also unmask corporate lobbying's influence on decision making and its impact on people and the planet. So, get comfortable, turn on the volume and tune in wherever you get your podcast from. You're listening to EU Watchdog Radio.
