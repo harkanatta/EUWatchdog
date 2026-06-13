@@ -2,12 +2,12 @@
 ingest.py — One-time script to chunk transcripts and load into Supabase
 ─────────────────────────────────────────────────────────────────────────
 Usage:
-  pip install supabase openai tiktoken python-dotenv
+  pip install supabase google-generativeai python-dotenv
 
   Set these in a .env file:
     SUPABASE_URL=https://xxxx.supabase.co
     SUPABASE_SERVICE_KEY=your-service-role-key   # NOT the anon key
-    OPENAI_API_KEY=your-openai-key
+    GEMINI_API_KEY=your-gemini-api-key
 
   Then run:
     python ingest.py
@@ -25,7 +25,8 @@ import re
 import time
 from pathlib import Path
 from dotenv import load_dotenv
-from openai import OpenAI
+from google import genai
+from google.genai import types as genai_types
 from supabase import create_client
 
 load_dotenv()
@@ -35,8 +36,8 @@ load_dotenv()
 TRANSCRIPT_DIR   = Path(__file__).parent / "eu_watchdog_whisper" / "transcripts"
 CHUNK_SIZE       = 500        # target words per chunk
 CHUNK_OVERLAP    = 50         # words of overlap between chunks
-EMBEDDING_MODEL  = "text-embedding-3-small"   # 1536 dims, cheap, good quality
-EMBED_BATCH_SIZE = 20         # embed N chunks per API call
+EMBEDDING_MODEL  = "models/gemini-embedding-001"  # 768 dims (truncated via output_dimensionality)
+EMBED_BATCH_SIZE = 5          # embed N chunks per API call
 
 PODCAST_SLUG     = "eu-watchdog-radio"
 PODCAST_TITLE    = "EU Watchdog Radio"
@@ -45,7 +46,7 @@ PODCAST_DESC     = ("A podcast about corporate lobbying and public money in the 
 
 # ── Clients ───────────────────────────────────────────────────────────────────
 
-openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+gemini_client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 supabase      = create_client(
     os.environ["SUPABASE_URL"],
     os.environ["SUPABASE_SERVICE_KEY"]
@@ -66,12 +67,26 @@ def chunk_text(text: str, chunk_size: int, overlap: int) -> list[str]:
 
 
 def embed_batch(texts: list[str]) -> list[list[float]]:
-    """Call OpenAI embeddings API for a batch of texts."""
-    response = openai_client.embeddings.create(
-        model=EMBEDDING_MODEL,
-        input=texts
-    )
-    return [item.embedding for item in response.data]
+    """Call Gemini embeddings API for a batch of texts, retrying on quota errors."""
+    wait = 60
+    while True:
+        try:
+            result = gemini_client.models.embed_content(
+                model=EMBEDDING_MODEL,
+                contents=texts,
+                config=genai_types.EmbedContentConfig(
+                    task_type="RETRIEVAL_DOCUMENT",
+                    output_dimensionality=768,
+                ),
+            )
+            return [e.values for e in result.embeddings]
+        except Exception as e:
+            if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                print(f"  Rate limit hit - waiting {wait}s before retry...")
+                time.sleep(wait)
+                wait = min(wait * 2, 300)  # back off up to 5 minutes
+            else:
+                raise
 
 
 # Filename: YYYYMMDD_[Episode_N_]Title_with_underscores
@@ -120,7 +135,7 @@ def main():
     for filepath in transcript_files:
         ep_number, published_at, ep_title = parse_filename(filepath.name)
         ep_label = f"Ep {ep_number}: " if ep_number else ""
-        print(f"\nProcessing: {filepath.name}  →  {ep_label}{ep_title}")
+        print(f"\nProcessing: {filepath.name}  ->  {ep_label}{ep_title}")
 
         # Insert episode row (source_file is the stable identity for re-runs)
         ep_resp = supabase.table("episodes").upsert({
@@ -136,7 +151,7 @@ def main():
         # Read and chunk the transcript
         text   = filepath.read_text(encoding="utf-8")
         chunks = chunk_text(text, CHUNK_SIZE, CHUNK_OVERLAP)
-        print(f"  {len(text.split())} words → {len(chunks)} chunks")
+        print(f"  {len(text.split())} words -> {len(chunks)} chunks")
 
         # Delete existing chunks for this episode (safe re-run)
         supabase.table("chunks")\
@@ -159,14 +174,14 @@ def main():
                     "embedding":   embedding,
                 })
 
-            print(f"  Embedded chunks {i}–{i + len(batch_texts) - 1}")
-            time.sleep(0.2)   # gentle rate limiting
+            print(f"  Embedded chunks {i}-{i + len(batch_texts) - 1}")
+            time.sleep(4)     # stay within Gemini free tier rate limits
 
         # Bulk insert
         supabase.table("chunks").insert(all_rows).execute()
-        print(f"  ✓ Inserted {len(all_rows)} chunks")
+        print(f"  OK Inserted {len(all_rows)} chunks")
 
-    print("\n✓ Ingestion complete.")
+    print("\nOK Ingestion complete.")
 
 
 if __name__ == "__main__":

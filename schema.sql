@@ -35,7 +35,7 @@ create table chunks (
   episode_id   uuid references episodes(id) on delete cascade,
   chunk_index  int,                          -- order within episode
   content      text not null,               -- raw transcript text
-  embedding    vector(1536),                -- OpenAI text-embedding-3-small
+  embedding    vector(768),                 -- Gemini gemini-embedding-001
   created_at   timestamptz default now()
 );
 
@@ -48,7 +48,7 @@ create index on chunks
 -- ── Similarity search function ────────────────────────────────
 -- Called from your backend: match_chunks(query_embedding, podcast_id, k)
 create or replace function match_chunks(
-  query_embedding vector(1536),
+  query_embedding vector(768),
   filter_podcast_id uuid,
   match_count int default 8
 )

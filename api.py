@@ -2,7 +2,7 @@
 api.py — FastAPI backend for askthispodcast.com
 ─────────────────────────────────────────────────
 Usage:
-  pip install fastapi uvicorn openai supabase python-dotenv
+  pip install fastapi uvicorn anthropic google-generativeai supabase python-dotenv
 
   Run locally:
     uvicorn api:app --reload
@@ -15,7 +15,8 @@ Usage:
   Set environment variables:
     SUPABASE_URL
     SUPABASE_SERVICE_KEY
-    OPENAI_API_KEY
+    GEMINI_API_KEY
+    ANTHROPIC_API_KEY
 """
 
 import os
@@ -24,7 +25,9 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from openai import OpenAI
+from google import genai
+from google.genai import types as genai_types
+import anthropic
 from supabase import create_client
 
 load_dotenv()
@@ -39,14 +42,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+gemini_client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+claude_client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 supabase      = create_client(
     os.environ["SUPABASE_URL"],
     os.environ["SUPABASE_SERVICE_KEY"]
 )
 
-EMBEDDING_MODEL = "text-embedding-3-small"
-CHAT_MODEL      = "gpt-4o-mini"   # cheap, fast, good quality
+EMBEDDING_MODEL = "models/gemini-embedding-001"  # 768 dims (truncated via output_dimensionality)
+CHAT_MODEL      = "claude-haiku-4-5-20251001"   # fast, cheap, high quality
 
 
 # ── Request / Response models ────────────────────────────────────────────────
@@ -98,11 +102,15 @@ def ask(req: AskRequest):
     podcast_id = podcast["id"]
 
     # 2. Embed the question
-    embed_resp = openai_client.embeddings.create(
+    embed_resp = gemini_client.models.embed_content(
         model=EMBEDDING_MODEL,
-        input=req.question
+        contents=req.question,
+        config=genai_types.EmbedContentConfig(
+            task_type="RETRIEVAL_QUERY",
+            output_dimensionality=768,
+        ),
     )
-    query_embedding = embed_resp.data[0].embedding
+    query_embedding = embed_resp.embeddings[0].values
 
     # 3. Similarity search via the SQL function defined in schema.sql
     match_resp = supabase.rpc("match_chunks", {
@@ -146,19 +154,13 @@ Question: {req.question}"""
 
     # 6. Stream the response
     def generate():
-        stream = openai_client.chat.completions.create(
+        with claude_client.messages.stream(
             model=CHAT_MODEL,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user",   "content": user_prompt},
-            ],
-            stream=True,
-            temperature=0.2,
             max_tokens=600,
-        )
-        for chunk in stream:
-            delta = chunk.choices[0].delta.content
-            if delta:
-                yield delta
+            system=system_prompt,
+            messages=[{"role": "user", "content": user_prompt}],
+        ) as stream:
+            for text in stream.text_stream:
+                yield text
 
     return StreamingResponse(generate(), media_type="text/plain")
