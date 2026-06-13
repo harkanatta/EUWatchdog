@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ask This Podcast</title>
+  <title>Ask EU Watchdog Radio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
   <style>
@@ -113,14 +113,50 @@
       transition: border-color 0.15s, background 0.15s;
     }
 
-    .podcast-btn:hover {
-      border-color: var(--ink);
-    }
+    .podcast-btn:hover { border-color: var(--ink); }
 
     .podcast-btn.selected {
       background: var(--ink);
       color: #fff;
       border-color: var(--ink);
+    }
+
+    /* ── Topics browser ── */
+    .topics-section {
+      margin-bottom: 2rem;
+      display: none;
+    }
+
+    .topics-section.visible { display: block; }
+
+    .topics-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .topic-btn {
+      padding: 0.4rem 0.85rem;
+      border: 1px solid var(--rule);
+      border-radius: 999px;
+      background: var(--card);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+      color: var(--muted);
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+
+    .topic-btn:hover {
+      border-color: var(--ink);
+      color: var(--ink);
+    }
+
+    .topic-btn.active {
+      background: var(--highlight);
+      border-color: var(--ink);
+      color: var(--ink);
     }
 
     /* ── Ask form ── */
@@ -146,10 +182,7 @@
       line-height: 1.5;
     }
 
-    .ask-input:focus {
-      border-color: var(--ink);
-    }
-
+    .ask-input:focus { border-color: var(--ink); }
     .ask-input::placeholder { color: #aaa; }
 
     .ask-btn {
@@ -166,7 +199,7 @@
       transition: opacity 0.15s;
     }
 
-    .ask-btn:hover  { opacity: 0.85; }
+    .ask-btn:hover    { opacity: 0.85; }
     .ask-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
     /* ── Answer area ── */
@@ -204,50 +237,12 @@
       animation: blink 1s step-end infinite;
     }
 
-    @keyframes blink {
-      50% { opacity: 0; }
-    }
+    @keyframes blink { 50% { opacity: 0; } }
 
     .error-msg {
       color: #c0392b;
       font-size: 0.9rem;
       margin-top: 0.5rem;
-    }
-
-    /* ── Suggested questions ── */
-    .suggestions {
-      margin-top: 1.5rem;
-    }
-
-    .suggestions p {
-      font-size: 0.78rem;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      margin-bottom: 0.5rem;
-    }
-
-    .suggestion-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
-
-    .suggestion-item {
-      font-size: 0.875rem;
-      color: var(--muted);
-      cursor: pointer;
-      padding: 0.3rem 0;
-      border-bottom: 1px solid transparent;
-      transition: color 0.15s;
-    }
-
-    .suggestion-item:hover { color: var(--ink); }
-
-    .suggestion-item::before {
-      content: "→ ";
-      font-style: normal;
     }
 
     /* ── Footer ── */
@@ -268,7 +263,7 @@
 <body>
 
 <header>
-  <a class="wordmark" href="/">Ask <em>This</em> Podcast</a>
+  <a class="wordmark" href="/">Ask <em>EU Watchdog Radio</em></a>
 </header>
 
 <main>
@@ -283,6 +278,12 @@
     <div class="podcast-grid" id="podcast-grid">
       <span style="color: var(--muted); font-size:0.9rem;">Loading...</span>
     </div>
+  </div>
+
+  <!-- Topic browser -->
+  <div class="topics-section" id="topics-section">
+    <div class="picker-label">Browse by topic</div>
+    <div class="topics-grid" id="topics-grid"></div>
   </div>
 
   <!-- Question input -->
@@ -300,12 +301,6 @@
     <div class="answer-label">Answer</div>
     <div class="answer-text" id="answer-text"></div>
   </div>
-
-  <!-- Suggested questions (shown after podcast is selected) -->
-  <div class="suggestions" id="suggestions" style="display:none;">
-    <p>Try asking</p>
-    <div class="suggestion-list" id="suggestion-list"></div>
-  </div>
 </main>
 
 <footer>
@@ -313,57 +308,65 @@
 </footer>
 
 <script>
-  // ── Config ──────────────────────────────────────────────────────────────────
-  // Change this to your deployed API URL (e.g. https://api.yourapp.com)
   const API_BASE = "https://euwatchdog-production.up.railway.app";
 
-  // Example suggested questions per podcast slug
-  // Customise these per show once you know what topics come up
-  const SUGGESTIONS = {
-    "eu-watchdog-radio": [
-      "What is corporate capture, and what examples does the show give?",
-      "What role does the European Investment Bank play in EU climate policy?",
-      "How do Big Tech lobbyists influence EU regulation?",
-      "What did the show say about green hydrogen?",
-    ],
-    "default": [
-      "What are the main themes discussed across episodes?",
-      "What guests have appeared on the show?",
-    ]
-  };
+  // ── Topics (from cluster analysis) ──────────────────────────────────────────
+  const TOPICS = [
+    { topic: "Big Pharma & Healthcare",           question: "What has the podcast said about Big Pharma lobbying and healthcare privatisation in the EU?" },
+    { topic: "Corporate Lobbying & Power",         question: "What are the main examples of corporate lobbying influencing EU policy?" },
+    { topic: "Financial Crisis & Recovery",        question: "What has the podcast said about EU financial institutions and economic recovery?" },
+    { topic: "Big Tech & AI Regulation",           question: "What has the podcast said about Big Tech lobbying and AI regulation in the EU?" },
+    { topic: "EIB & Public Banking",               question: "What has the podcast said about the European Investment Bank and public finance?" },
+    { topic: "Militarisation & Arms Industry",     question: "What has the podcast said about EU militarisation and the arms industry?" },
+    { topic: "EU Deregulation",                    question: "What has the podcast said about EU deregulation and its consequences?" },
+    { topic: "Lobbying Transparency & Qatargate", question: "What has the podcast said about lobbying transparency and the Qatargate scandal?" },
+    { topic: "Green Deal Politics",                question: "What has the podcast said about the EU Green Deal and who is trying to weaken it?" },
+    { topic: "Energy Charter Treaty",              question: "What has the podcast said about the Energy Charter Treaty and climate action?" },
+    { topic: "Toxic Chemicals & PFAS",             question: "What has the podcast said about PFAS and chemical industry lobbying against regulation?" },
+    { topic: "Biotech & GMO Lobbying",             question: "What has the podcast said about biotech lobbying and GMO deregulation?" },
+    { topic: "Climate False Solutions",            question: "What false solutions to the climate crisis has the podcast identified?" },
+    { topic: "COP Climate Summits",                question: "What has the podcast said about COP climate summits and fossil fuel industry influence?" },
+    { topic: "Fossil Fuels & Gas Lobbying",        question: "What has the podcast said about fossil fuel and gas lobbying in EU climate policy?" },
+    { topic: "Frontex & Migration Policy",         question: "What has the podcast said about Frontex and lobbying around EU migration policy?" },
+    { topic: "Big Meat & Food Lobbying",           question: "What has the podcast said about the meat industry lobby and EU food policy?" },
+    { topic: "Agricultural Policy (CAP)",          question: "What has the podcast said about the Common Agricultural Policy and farm lobbying?" },
+    { topic: "Food Speculation & Hunger",          question: "What has the podcast said about food speculation and hunger as a political failure?" },
+    { topic: "Green Hydrogen & Global South",      question: "What has the podcast said about green hydrogen and its impact on Africa and the Global South?" },
+    { topic: "Ukraine War & Reconstruction",       question: "What has the podcast said about EU public finance and Ukraine reconstruction?" },
+    { topic: "Globalisation & Supply Chains",      question: "What has the podcast said about the logistics of globalisation and its alternatives?" },
+  ];
 
-  // ── State ───────────────────────────────────────────────────────────────────
+  // ── State ────────────────────────────────────────────────────────────────────
   let selectedPodcast = null;
+  let activeTopic     = null;
 
   // ── Elements ─────────────────────────────────────────────────────────────────
   const podcastGrid   = document.getElementById("podcast-grid");
+  const topicsSection = document.getElementById("topics-section");
+  const topicsGrid    = document.getElementById("topics-grid");
   const questionInput = document.getElementById("question-input");
   const askBtn        = document.getElementById("ask-btn");
   const answerWrap    = document.getElementById("answer-wrap");
   const answerText    = document.getElementById("answer-text");
-  const suggestionsEl = document.getElementById("suggestions");
-  const suggestionList= document.getElementById("suggestion-list");
 
-  // ── Load podcasts ────────────────────────────────────────────────────────────
+  // ── Load podcasts ─────────────────────────────────────────────────────────────
   async function loadPodcasts() {
     try {
-      const resp = await fetch(`${API_BASE}/podcasts`);
+      const resp    = await fetch(`${API_BASE}/podcasts`);
       const podcasts = await resp.json();
 
       podcastGrid.innerHTML = "";
       podcasts.forEach(podcast => {
         const btn = document.createElement("button");
-        btn.className = "podcast-btn";
+        btn.className   = "podcast-btn";
         btn.textContent = podcast.title;
         btn.dataset.slug = podcast.slug;
         btn.addEventListener("click", () => selectPodcast(podcast, btn));
         podcastGrid.appendChild(btn);
       });
 
-      // Auto-select if only one podcast
       if (podcasts.length === 1) {
-        const btn = podcastGrid.querySelector(".podcast-btn");
-        selectPodcast(podcasts[0], btn);
+        selectPodcast(podcasts[0], podcastGrid.querySelector(".podcast-btn"));
       }
     } catch (e) {
       podcastGrid.innerHTML = `<span style="color:var(--muted)">Could not load podcasts.</span>`;
@@ -376,53 +379,51 @@
     btn.classList.add("selected");
     askBtn.disabled = false;
     questionInput.placeholder = `Ask anything about "${podcast.title}"...`;
-    showSuggestions(podcast.slug);
+    buildTopics();
+    topicsSection.classList.add("visible");
   }
 
-  function showSuggestions(slug) {
-    const items = SUGGESTIONS[slug] || SUGGESTIONS["default"];
-    suggestionList.innerHTML = "";
-    items.forEach(q => {
-      const el = document.createElement("div");
-      el.className = "suggestion-item";
-      el.textContent = q;
-      el.addEventListener("click", () => {
-        questionInput.value = q;
+  // ── Build topic buttons ───────────────────────────────────────────────────────
+  function buildTopics() {
+    topicsGrid.innerHTML = "";
+    TOPICS.forEach(t => {
+      const btn = document.createElement("button");
+      btn.className   = "topic-btn";
+      btn.textContent = t.topic;
+      btn.addEventListener("click", () => {
+        // Deactivate previous
+        document.querySelectorAll(".topic-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeTopic = t;
+        questionInput.value = t.question;
         handleAsk();
       });
-      suggestionList.appendChild(el);
+      topicsGrid.appendChild(btn);
     });
-    suggestionsEl.style.display = "block";
   }
 
-  // ── Ask ──────────────────────────────────────────────────────────────────────
+  // ── Ask ───────────────────────────────────────────────────────────────────────
   async function handleAsk() {
     const question = questionInput.value.trim();
     if (!question || !selectedPodcast) return;
 
-    // UI: loading state
-    askBtn.disabled = true;
+    askBtn.disabled   = true;
     askBtn.textContent = "Asking...";
     answerWrap.classList.add("visible");
     answerText.innerHTML = '<span class="typing-cursor"></span>';
 
     try {
       const resp = await fetch(`${API_BASE}/ask`, {
-        method: "POST",
+        method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          podcast_slug: selectedPodcast.slug,
-          question:     question
-        })
+        body:    JSON.stringify({ podcast_slug: selectedPodcast.slug, question })
       });
 
       if (!resp.ok) throw new Error("Server error");
 
-      // Stream the response
       const reader  = resp.body.getReader();
       const decoder = new TextDecoder();
       let   answer  = "";
-
       answerText.innerHTML = "";
 
       while (true) {
@@ -435,12 +436,12 @@
     } catch (err) {
       answerText.innerHTML = `<span class="error-msg">Something went wrong. Please try again.</span>`;
     } finally {
-      askBtn.disabled = false;
+      askBtn.disabled    = false;
       askBtn.textContent = "Ask";
     }
   }
 
-  // ── Events ───────────────────────────────────────────────────────────────────
+  // ── Events ────────────────────────────────────────────────────────────────────
   askBtn.addEventListener("click", handleAsk);
 
   questionInput.addEventListener("keydown", e => {
@@ -450,7 +451,13 @@
     }
   });
 
-  // ── Init ─────────────────────────────────────────────────────────────────────
+  // Clear active topic when user types their own question
+  questionInput.addEventListener("input", () => {
+    document.querySelectorAll(".topic-btn").forEach(b => b.classList.remove("active"));
+    activeTopic = null;
+  });
+
+  // ── Init ──────────────────────────────────────────────────────────────────────
   loadPodcasts();
 </script>
 </body>
