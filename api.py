@@ -142,7 +142,8 @@ def ask(req: AskRequest):
 Answer questions using ONLY the transcript excerpts provided below.
 Always cite which episode your answer comes from, e.g. "(Episode 12: Title)".
 If the answer isn't in the excerpts, say so honestly — don't make things up.
-Be concise and direct."""
+Be concise and direct.
+Always respond in the same language the user asked their question in."""
 
     user_prompt = f"""Transcript excerpts:
 
