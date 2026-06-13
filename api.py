@@ -1,5 +1,5 @@
 """
-api.py — FastAPI backend for askthispodcast.com
+api.py — FastAPI backend for EU Watchdog Radio
 ─────────────────────────────────────────────────
 Usage:
   pip install fastapi uvicorn anthropic google-generativeai supabase python-dotenv
