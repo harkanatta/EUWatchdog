@@ -342,20 +342,6 @@
     <p>Ask anything — the AI finds relevant transcript excerpts and answers from the actual words spoken in the show.</p>
   </div>
 
-  <!-- ── Podcast selector ───────────────────────────────────────────────────── -->
-  <div class="card" id="picker-section">
-    <div class="section-label">Choose a podcast</div>
-    <div class="podcast-grid" id="podcast-grid">
-      <span style="color:var(--soft);font-size:0.875rem;">Loading...</span>
-    </div>
-  </div>
-
-  <!-- ── Topic browser ─────────────────────────────────────────────────────── -->
-  <div class="card" id="topics-section">
-    <div class="section-label">Browse by topic</div>
-    <div class="topics-grid" id="topics-grid"></div>
-  </div>
-
   <!-- ── Ask form ───────────────────────────────────────────────────────────── -->
   <div class="ask-card">
     <div class="section-label">Your question</div>
@@ -366,9 +352,24 @@
       placeholder="What did they say about..."></textarea>
     <div class="ask-row">
       <span class="ask-hint">Press Enter to ask</span>
-      <button id="ask-btn" class="ask-btn" disabled>Ask</button>
+      <button id="ask-btn" class="ask-btn">Ask</button>
     </div>
   </div>
+
+  <!-- ── Topic browser ─────────────────────────────────────────────────────── -->
+  <div class="card" id="topics-section">
+    <div class="section-label">Browse by topic</div>
+    <p style="font-size:0.85rem;color:var(--muted);line-height:1.6;margin-bottom:1rem;">
+      Every episode was cut into 500-word chunks and each chunk was converted into a unique
+      set of 768 numbers — a mathematical fingerprint of its meaning, not its words.
+      An algorithm then grouped the 842 chunks by similarity, with no human guidance,
+      and these are the topics it found on its own.
+    </p>
+    <div class="topics-grid" id="topics-grid"></div>
+  </div>
+
+  <!-- Hidden podcast grid still needed for JS auto-select -->
+  <div id="podcast-grid" style="display:none;"></div>
 
   <!-- ── Answer ─────────────────────────────────────────────────────────────── -->
   <div class="answer-card" id="answer-card">
@@ -423,33 +424,20 @@
   const answerCard    = document.getElementById("answer-card");
   const answerText    = document.getElementById("answer-text");
 
+  // No podcast selection needed — auto-selected on load
+  askBtn.disabled = false;
+
   async function loadPodcasts() {
     try {
       const podcasts = await fetch(`${API_BASE}/podcasts`).then(r => r.json());
-      podcastGrid.innerHTML = "";
-      podcasts.forEach(podcast => {
-        const btn = document.createElement("button");
-        btn.className    = "podcast-btn";
-        btn.textContent  = podcast.title;
-        btn.dataset.slug = podcast.slug;
-        btn.addEventListener("click", () => selectPodcast(podcast, btn));
-        podcastGrid.appendChild(btn);
-      });
-      if (podcasts.length === 1)
-        selectPodcast(podcasts[0], podcastGrid.querySelector(".podcast-btn"));
+      if (podcasts.length > 0) {
+        selectedPodcast = podcasts[0];
+        buildTopics();
+        topicsSection.classList.add("visible");
+      }
     } catch (e) {
-      podcastGrid.innerHTML = `<span style="color:var(--soft)">Could not load podcasts.</span>`;
+      console.error("Could not load podcasts", e);
     }
-  }
-
-  function selectPodcast(podcast, btn) {
-    selectedPodcast = podcast;
-    document.querySelectorAll(".podcast-btn").forEach(b => b.classList.remove("selected"));
-    btn.classList.add("selected");
-    askBtn.disabled = false;
-    questionInput.placeholder = `Ask anything about "${podcast.title}"...`;
-    buildTopics();
-    topicsSection.classList.add("visible");
   }
 
   function buildTopics() {
