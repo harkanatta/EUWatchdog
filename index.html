@@ -537,30 +537,35 @@
         answerText.textContent = answer;
       }
 
+      // After the main answer finishes, fetch follow-up suggestions
+      fetchSuggestions(question, answer);
+
     } catch (err) {
       answerText.innerHTML = `<span class="error-msg">Something went wrong. Please try again.</span>`;
     } finally {
-        askBtn.disabled    = false;
+      askBtn.disabled    = false;
       askBtn.textContent = "Ask";
-      renderDigDeeper(answer);
     }
   }
 
-  function renderDigDeeper(fullAnswer) {
-    // Look for "Dig deeper" section in the answer
-    const match = fullAnswer.match(/Dig deeper[\s\S]*$/i);
-    if (!match) { digDeeper.style.display = "none"; return; }
+  async function fetchSuggestions(question, answer) {
+    try {
+      const resp = await fetch(`${API_BASE}/suggest`, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ question, answer })
+      });
+      if (!resp.ok) return;
+      const { questions } = await resp.json();
+      if (questions && questions.length > 0) renderDigDeeper(questions);
+    } catch (e) {
+      // Suggestions are optional — silently skip on error
+    }
+  }
 
-    // Extract bullet lines (lines starting with - or a number)
-    const section = match[0];
-    const lines = section.split("\n")
-      .map(l => l.replace(/^[-*\d.)\s]+/, "").trim())
-      .filter(l => l.length > 10 && !l.toLowerCase().startsWith("dig deeper"));
-
-    if (lines.length === 0) { digDeeper.style.display = "none"; return; }
-
+  function renderDigDeeper(questions) {
     digDeeperList.innerHTML = "";
-    lines.forEach(q => {
+    questions.forEach(q => {
       const btn = document.createElement("button");
       btn.className   = "dig-deeper-btn";
       btn.textContent = q;
@@ -571,9 +576,6 @@
       });
       digDeeperList.appendChild(btn);
     });
-
-    // Hide the dig deeper section from the main answer text
-    answerText.textContent = fullAnswer.replace(/\n*Dig deeper[\s\S]*$/i, "").trim();
     digDeeper.style.display = "block";
   }
 

@@ -60,6 +60,11 @@ class AskRequest(BaseModel):
     question:     str
 
 
+class SuggestRequest(BaseModel):
+    question: str
+    answer:   str
+
+
 class PodcastOut(BaseModel):
     id:          str
     slug:        str
@@ -142,9 +147,8 @@ def ask(req: AskRequest):
 Answer questions using ONLY the transcript excerpts provided below.
 Always cite which episode your answer comes from, e.g. "(Episode 12: Title)".
 If the answer isn't in the excerpts, say so honestly — don't make things up.
-Keep your answer brief — 3 to 5 sentences maximum.
-Always respond in the same language the user asked their question in.
-After your answer, add a section on a new line titled exactly "Dig deeper:" followed by 2-3 short follow-up questions as a numbered list, based on what the transcripts touched on but didn't fully cover."""
+Be concise and direct.
+Always respond in the same language the user asked their question in."""
 
     user_prompt = f"""Transcript excerpts:
 
@@ -158,7 +162,7 @@ Question: {req.question}"""
     def generate():
         with claude_client.messages.stream(
             model=CHAT_MODEL,
-            max_tokens=900,
+            max_tokens=700,
             system=system_prompt,
             messages=[{"role": "user", "content": user_prompt}],
         ) as stream:
@@ -166,3 +170,26 @@ Question: {req.question}"""
                 yield text
 
     return StreamingResponse(generate(), media_type="text/plain")
+
+
+@app.post("/suggest")
+def suggest(req: SuggestRequest):
+    """
+    Return 3 follow-up questions for the Dig Deeper feature.
+    Called by the frontend after the main /ask stream completes.
+    """
+    prompt = f"""A user asked: "{req.question}"
+
+The podcast answered: {req.answer[:800]}
+
+Suggest exactly 3 brief, specific follow-up questions the user could ask next.
+Return ONLY the 3 questions, one per line, no numbers, no bullets, no explanation."""
+
+    result = claude_client.messages.create(
+        model=CHAT_MODEL,
+        max_tokens=150,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    raw = result.content[0].text.strip()
+    questions = [q.strip() for q in raw.split("\n") if q.strip()][:3]
+    return {"questions": questions}
