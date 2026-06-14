@@ -291,6 +291,49 @@
       white-space: pre-wrap;
     }
 
+    /* ── Dig deeper ──────────────────────────────────────────────────────────── */
+    .dig-deeper {
+      margin-top: 1.25rem;
+      padding-top: 1.1rem;
+      border-top: 1px solid var(--rule);
+    }
+
+    .dig-deeper-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--soft);
+      margin-bottom: 0.6rem;
+    }
+
+    .dig-deeper-btn {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 0.55rem 0.85rem;
+      margin-bottom: 0.4rem;
+      border: 1.5px solid var(--rule);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.82rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color 0.12s, color 0.12s, background 0.12s;
+    }
+
+    .dig-deeper-btn:hover {
+      border-color: var(--ink);
+      color: var(--ink);
+      background: var(--surface);
+    }
+
+    .dig-deeper-btn::before {
+      content: "→ ";
+      color: var(--soft);
+    }
+
     .typing-cursor {
       display: inline-block;
       width: 2px;
@@ -377,6 +420,10 @@
       <div class="section-label" style="margin-bottom:0;">Answer from transcripts</div>
     </div>
     <div class="answer-text" id="answer-text"></div>
+    <div class="dig-deeper" id="dig-deeper" style="display:none;">
+      <div class="dig-deeper-label">Dig deeper</div>
+      <div id="dig-deeper-list"></div>
+    </div>
   </div>
 
 </main>
@@ -420,8 +467,10 @@
   const topicsGrid    = document.getElementById("topics-grid");
   const questionInput = document.getElementById("question-input");
   const askBtn        = document.getElementById("ask-btn");
-  const answerCard    = document.getElementById("answer-card");
-  const answerText    = document.getElementById("answer-text");
+  const answerCard     = document.getElementById("answer-card");
+  const answerText     = document.getElementById("answer-text");
+  const digDeeper      = document.getElementById("dig-deeper");
+  const digDeeperList  = document.getElementById("dig-deeper-list");
 
   // No podcast selection needed — auto-selected on load
   askBtn.disabled = false;
@@ -488,9 +537,41 @@
     } catch (err) {
       answerText.innerHTML = `<span class="error-msg">Something went wrong. Please try again.</span>`;
     } finally {
-      askBtn.disabled    = false;
+        askBtn.disabled    = false;
       askBtn.textContent = "Ask";
+      renderDigDeeper(answer);
     }
+  }
+
+  function renderDigDeeper(fullAnswer) {
+    // Look for "Dig deeper" section in the answer
+    const match = fullAnswer.match(/Dig deeper[\s\S]*$/i);
+    if (!match) { digDeeper.style.display = "none"; return; }
+
+    // Extract bullet lines (lines starting with - or a number)
+    const section = match[0];
+    const lines = section.split("\n")
+      .map(l => l.replace(/^[-*\d.)\s]+/, "").trim())
+      .filter(l => l.length > 10 && !l.toLowerCase().startsWith("dig deeper"));
+
+    if (lines.length === 0) { digDeeper.style.display = "none"; return; }
+
+    digDeeperList.innerHTML = "";
+    lines.forEach(q => {
+      const btn = document.createElement("button");
+      btn.className   = "dig-deeper-btn";
+      btn.textContent = q;
+      btn.addEventListener("click", () => {
+        questionInput.value = q;
+        document.querySelectorAll(".topic-btn").forEach(b => b.classList.remove("active"));
+        handleAsk();
+      });
+      digDeeperList.appendChild(btn);
+    });
+
+    // Hide the dig deeper section from the main answer text
+    answerText.textContent = fullAnswer.replace(/\n*Dig deeper[\s\S]*$/i, "").trim();
+    digDeeper.style.display = "block";
   }
 
   askBtn.addEventListener("click", handleAsk);
