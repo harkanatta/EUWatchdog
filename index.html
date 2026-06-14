@@ -5,19 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ask EU Watchdog Radio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --ink:       #0f0f0f;
-      --muted:     #6b6b6b;
-      --rule:      #e2e2e2;
-      --bg:        #fafaf8;
-      --card:      #ffffff;
-      --accent:    #1a1a1a;
-      --highlight: #f0ede6;
-      --radius:    6px;
+      --ink:        #0f0f0f;
+      --muted:      #6b6b6b;
+      --soft:       #9a9a9a;
+      --rule:       #e8e8e8;
+      --bg:         #f0efeb;
+      --surface:    #ffffff;
+      --active-bg:  #0f0f0f;
+      --active-fg:  #ffffff;
+      --accent:     #2563eb;
+      --radius-sm:  8px;
+      --radius-md:  14px;
+      --radius-lg:  20px;
+      --shadow-sm:  0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+      --shadow-md:  0 2px 8px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.08);
     }
 
     body {
@@ -29,21 +35,25 @@
       flex-direction: column;
     }
 
-    /* ── Header ── */
+    /* ── Header band ─────────────────────────────────────────────────────────── */
     header {
-      border-bottom: 1px solid var(--rule);
-      padding: 1.25rem 2rem;
+      background: var(--surface);
+      padding: 1.1rem 2rem;
       display: flex;
-      align-items: baseline;
-      gap: 0.75rem;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 1px 0 var(--rule);
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
     .wordmark {
       font-family: 'Instrument Serif', serif;
-      font-size: 1.4rem;
-      letter-spacing: -0.01em;
+      font-size: 1.25rem;
       color: var(--ink);
       text-decoration: none;
+      letter-spacing: -0.01em;
     }
 
     .wordmark em {
@@ -51,25 +61,51 @@
       color: var(--muted);
     }
 
-    /* ── Main layout ── */
-    main {
-      flex: 1;
-      max-width: 720px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 3rem 1.5rem 4rem;
+    .header-badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      background: var(--bg);
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
     }
 
-    /* ── Hero ── */
-    .hero {
-      margin-bottom: 2.5rem;
+    /* ── Main ────────────────────────────────────────────────────────────────── */
+    main {
+      flex: 1;
+      max-width: 780px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
     }
+
+    /* ── Section label ───────────────────────────────────────────────────────── */
+    .section-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--soft);
+      margin-bottom: 0.75rem;
+    }
+
+    /* ── Hero block ──────────────────────────────────────────────────────────── */
+    .hero {
+      padding: 2.5rem 0 0.5rem;
+    }
+
+    .hero .section-label { margin-bottom: 0.6rem; }
 
     .hero h1 {
       font-family: 'Instrument Serif', serif;
-      font-size: clamp(2rem, 5vw, 3rem);
-      line-height: 1.1;
-      letter-spacing: -0.02em;
+      font-size: clamp(2.2rem, 5vw, 3.2rem);
+      line-height: 1.08;
+      letter-spacing: -0.025em;
       margin-bottom: 0.75rem;
     }
 
@@ -81,71 +117,75 @@
     .hero p {
       color: var(--muted);
       font-size: 0.95rem;
-      line-height: 1.6;
+      line-height: 1.65;
+      max-width: 480px;
     }
 
-    /* ── Podcast picker ── */
-    .picker-label {
-      font-size: 0.78rem;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      margin-bottom: 0.5rem;
+    /* ── Card ────────────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      padding: 1.5rem;
     }
 
+    /* ── Podcast selector ────────────────────────────────────────────────────── */
     .podcast-grid {
       display: flex;
+      gap: 0.75rem;
       flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 2rem;
     }
 
     .podcast-btn {
-      padding: 0.5rem 1rem;
-      border: 1px solid var(--rule);
-      border-radius: 999px;
-      background: var(--card);
+      flex: 1;
+      min-width: 160px;
+      padding: 1rem 1.25rem;
+      border: 2px solid var(--rule);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
       font-family: 'Inter', sans-serif;
       font-size: 0.875rem;
+      font-weight: 600;
       cursor: pointer;
-      color: var(--ink);
-      transition: border-color 0.15s, background 0.15s;
+      color: var(--muted);
+      text-align: left;
+      transition: border-color 0.15s, color 0.15s, background 0.15s, box-shadow 0.15s;
     }
 
-    .podcast-btn:hover { border-color: var(--ink); }
+    .podcast-btn:hover {
+      border-color: var(--ink);
+      color: var(--ink);
+      box-shadow: var(--shadow-sm);
+    }
 
     .podcast-btn.selected {
-      background: var(--ink);
-      color: #fff;
-      border-color: var(--ink);
+      background: var(--active-bg);
+      color: var(--active-fg);
+      border-color: var(--active-bg);
     }
 
-    /* ── Topics browser ── */
-    .topics-section {
-      margin-bottom: 2rem;
-      display: none;
-    }
-
-    .topics-section.visible { display: block; }
+    /* ── Topic browser ───────────────────────────────────────────────────────── */
+    #topics-section { display: none; }
+    #topics-section.visible { display: block; }
 
     .topics-grid {
       display: flex;
       flex-wrap: wrap;
       gap: 0.5rem;
-      margin-top: 0.5rem;
     }
 
     .topic-btn {
-      padding: 0.4rem 0.85rem;
-      border: 1px solid var(--rule);
+      padding: 0.45rem 0.9rem;
+      border: 1.5px solid var(--rule);
       border-radius: 999px;
-      background: var(--card);
+      background: var(--surface);
       font-family: 'Inter', sans-serif;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
+      font-weight: 500;
       cursor: pointer;
       color: var(--muted);
-      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      transition: border-color 0.12s, color 0.12s, background 0.12s;
+      white-space: nowrap;
     }
 
     .topic-btn:hover {
@@ -154,27 +194,30 @@
     }
 
     .topic-btn.active {
-      background: var(--highlight);
-      border-color: var(--ink);
-      color: var(--ink);
+      background: var(--active-bg);
+      color: var(--active-fg);
+      border-color: var(--active-bg);
     }
 
-    /* ── Ask form ── */
-    .ask-form {
+    /* ── Ask form ────────────────────────────────────────────────────────────── */
+    .ask-card {
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+      padding: 1.25rem;
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
-      margin-bottom: 2rem;
     }
 
     .ask-input {
       width: 100%;
-      padding: 0.875rem 1rem;
-      border: 1px solid var(--rule);
-      border-radius: var(--radius);
+      padding: 0.8rem 1rem;
+      border: 1.5px solid var(--rule);
+      border-radius: var(--radius-sm);
       font-family: 'Inter', sans-serif;
-      font-size: 1rem;
-      background: var(--card);
+      font-size: 0.95rem;
+      background: var(--bg);
       color: var(--ink);
       resize: none;
       outline: none;
@@ -182,47 +225,68 @@
       line-height: 1.5;
     }
 
-    .ask-input:focus { border-color: var(--ink); }
-    .ask-input::placeholder { color: #aaa; }
+    .ask-input:focus { border-color: var(--ink); background: var(--surface); }
+    .ask-input::placeholder { color: var(--soft); }
+
+    .ask-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+
+    .ask-hint {
+      font-size: 0.75rem;
+      color: var(--soft);
+      flex: 1;
+    }
 
     .ask-btn {
-      align-self: flex-end;
-      padding: 0.6rem 1.5rem;
-      background: var(--ink);
-      color: #fff;
+      padding: 0.65rem 1.6rem;
+      background: var(--active-bg);
+      color: var(--active-fg);
       border: none;
-      border-radius: var(--radius);
+      border-radius: var(--radius-sm);
       font-family: 'Inter', sans-serif;
       font-size: 0.875rem;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
-      transition: opacity 0.15s;
+      transition: opacity 0.15s, transform 0.1s;
     }
 
     .ask-btn:hover    { opacity: 0.85; }
-    .ask-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .ask-btn:active   { transform: scale(0.98); }
+    .ask-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-    /* ── Answer area ── */
-    .answer-wrap {
+    /* ── Answer card ─────────────────────────────────────────────────────────── */
+    .answer-card {
       display: none;
-      border-top: 1px solid var(--rule);
-      padding-top: 1.75rem;
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      padding: 1.5rem;
     }
 
-    .answer-wrap.visible { display: block; }
+    .answer-card.visible { display: block; }
 
-    .answer-label {
-      font-size: 0.78rem;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      margin-bottom: 0.75rem;
+    .answer-header {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+    }
+
+    .answer-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
     }
 
     .answer-text {
-      font-size: 1rem;
-      line-height: 1.75;
+      font-size: 0.95rem;
+      line-height: 1.8;
       color: var(--ink);
       white-space: pre-wrap;
     }
@@ -240,77 +304,90 @@
     @keyframes blink { 50% { opacity: 0; } }
 
     .error-msg {
-      color: #c0392b;
-      font-size: 0.9rem;
-      margin-top: 0.5rem;
+      color: #dc2626;
+      font-size: 0.875rem;
     }
 
-    /* ── Footer ── */
+    /* ── Footer ──────────────────────────────────────────────────────────────── */
     footer {
-      border-top: 1px solid var(--rule);
-      padding: 1rem 2rem;
-      font-size: 0.78rem;
-      color: var(--muted);
+      padding: 1.25rem 2rem;
+      font-size: 0.75rem;
+      color: var(--soft);
       text-align: center;
     }
 
+    /* ── Responsive ──────────────────────────────────────────────────────────── */
     @media (max-width: 480px) {
-      header { padding: 1rem; }
-      main   { padding: 2rem 1rem 3rem; }
+      header   { padding: 1rem; }
+      main     { padding: 1.5rem 1rem 4rem; gap: 1.25rem; }
+      .card, .ask-card, .answer-card { padding: 1.1rem; }
+      .hero h1 { font-size: 2rem; }
     }
   </style>
 </head>
 <body>
 
+<!-- ── Header band ──────────────────────────────────────────────────────────── -->
 <header>
   <a class="wordmark" href="/">Ask <em>EU Watchdog Radio</em></a>
+  <span class="header-badge">AI-powered search</span>
 </header>
 
 <main>
+
+  <!-- ── Hero ──────────────────────────────────────────────────────────────── -->
   <div class="hero">
+    <div class="section-label">EU Watchdog Radio — all episodes</div>
     <h1>Every episode.<br><em>Any question.</em></h1>
-    <p>Ask anything — the AI answers from the actual transcripts.</p>
+    <p>Ask anything — the AI finds relevant transcript excerpts and answers from the actual words spoken in the show.</p>
   </div>
 
-  <!-- Podcast picker (populated from API) -->
-  <div id="picker-section">
-    <div class="picker-label">Choose a podcast</div>
+  <!-- ── Podcast selector ───────────────────────────────────────────────────── -->
+  <div class="card" id="picker-section">
+    <div class="section-label">Choose a podcast</div>
     <div class="podcast-grid" id="podcast-grid">
-      <span style="color: var(--muted); font-size:0.9rem;">Loading...</span>
+      <span style="color:var(--soft);font-size:0.875rem;">Loading...</span>
     </div>
   </div>
 
-  <!-- Topic browser -->
-  <div class="topics-section" id="topics-section">
-    <div class="picker-label">Browse by topic</div>
+  <!-- ── Topic browser ─────────────────────────────────────────────────────── -->
+  <div class="card" id="topics-section">
+    <div class="section-label">Browse by topic</div>
     <div class="topics-grid" id="topics-grid"></div>
   </div>
 
-  <!-- Question input -->
-  <div class="ask-form">
+  <!-- ── Ask form ───────────────────────────────────────────────────────────── -->
+  <div class="ask-card">
+    <div class="section-label">Your question</div>
     <textarea
       id="question-input"
       class="ask-input"
       rows="2"
       placeholder="What did they say about..."></textarea>
-    <button id="ask-btn" class="ask-btn" disabled>Ask</button>
+    <div class="ask-row">
+      <span class="ask-hint">Press Enter to ask</span>
+      <button id="ask-btn" class="ask-btn" disabled>Ask</button>
+    </div>
   </div>
 
-  <!-- Answer -->
-  <div class="answer-wrap" id="answer-wrap">
-    <div class="answer-label">Answer</div>
+  <!-- ── Answer ─────────────────────────────────────────────────────────────── -->
+  <div class="answer-card" id="answer-card">
+    <div class="answer-header">
+      <div class="answer-dot"></div>
+      <div class="section-label" style="margin-bottom:0;">Answer from transcripts</div>
+    </div>
     <div class="answer-text" id="answer-text"></div>
   </div>
+
 </main>
 
 <footer>
-  Answers are generated from podcast transcripts. Always verify important claims.
+  Answers are generated from podcast transcripts · Always verify important claims
 </footer>
 
 <script>
   const API_BASE = "https://euwatchdog-production.up.railway.app";
 
-  // ── Topics (from cluster analysis) ──────────────────────────────────────────
   const TOPICS = [
     { topic: "Big Pharma & Healthcare",           question: "What has the podcast said about Big Pharma lobbying and healthcare privatisation in the EU?" },
     { topic: "Corporate Lobbying & Power",         question: "What are the main examples of corporate lobbying influencing EU policy?" },
@@ -336,40 +413,32 @@
     { topic: "Globalisation & Supply Chains",      question: "What has the podcast said about the logistics of globalisation and its alternatives?" },
   ];
 
-  // ── State ────────────────────────────────────────────────────────────────────
   let selectedPodcast = null;
-  let activeTopic     = null;
 
-  // ── Elements ─────────────────────────────────────────────────────────────────
   const podcastGrid   = document.getElementById("podcast-grid");
   const topicsSection = document.getElementById("topics-section");
   const topicsGrid    = document.getElementById("topics-grid");
   const questionInput = document.getElementById("question-input");
   const askBtn        = document.getElementById("ask-btn");
-  const answerWrap    = document.getElementById("answer-wrap");
+  const answerCard    = document.getElementById("answer-card");
   const answerText    = document.getElementById("answer-text");
 
-  // ── Load podcasts ─────────────────────────────────────────────────────────────
   async function loadPodcasts() {
     try {
-      const resp    = await fetch(`${API_BASE}/podcasts`);
-      const podcasts = await resp.json();
-
+      const podcasts = await fetch(`${API_BASE}/podcasts`).then(r => r.json());
       podcastGrid.innerHTML = "";
       podcasts.forEach(podcast => {
         const btn = document.createElement("button");
-        btn.className   = "podcast-btn";
-        btn.textContent = podcast.title;
+        btn.className    = "podcast-btn";
+        btn.textContent  = podcast.title;
         btn.dataset.slug = podcast.slug;
         btn.addEventListener("click", () => selectPodcast(podcast, btn));
         podcastGrid.appendChild(btn);
       });
-
-      if (podcasts.length === 1) {
+      if (podcasts.length === 1)
         selectPodcast(podcasts[0], podcastGrid.querySelector(".podcast-btn"));
-      }
     } catch (e) {
-      podcastGrid.innerHTML = `<span style="color:var(--muted)">Could not load podcasts.</span>`;
+      podcastGrid.innerHTML = `<span style="color:var(--soft)">Could not load podcasts.</span>`;
     }
   }
 
@@ -383,7 +452,6 @@
     topicsSection.classList.add("visible");
   }
 
-  // ── Build topic buttons ───────────────────────────────────────────────────────
   function buildTopics() {
     topicsGrid.innerHTML = "";
     TOPICS.forEach(t => {
@@ -391,10 +459,8 @@
       btn.className   = "topic-btn";
       btn.textContent = t.topic;
       btn.addEventListener("click", () => {
-        // Deactivate previous
         document.querySelectorAll(".topic-btn").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
-        activeTopic = t;
         questionInput.value = t.question;
         handleAsk();
       });
@@ -402,14 +468,13 @@
     });
   }
 
-  // ── Ask ───────────────────────────────────────────────────────────────────────
   async function handleAsk() {
     const question = questionInput.value.trim();
     if (!question || !selectedPodcast) return;
 
-    askBtn.disabled   = true;
+    askBtn.disabled    = true;
     askBtn.textContent = "Asking...";
-    answerWrap.classList.add("visible");
+    answerCard.classList.add("visible");
     answerText.innerHTML = '<span class="typing-cursor"></span>';
 
     try {
@@ -441,23 +506,16 @@
     }
   }
 
-  // ── Events ────────────────────────────────────────────────────────────────────
   askBtn.addEventListener("click", handleAsk);
 
   questionInput.addEventListener("keydown", e => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleAsk();
-    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAsk(); }
   });
 
-  // Clear active topic when user types their own question
   questionInput.addEventListener("input", () => {
     document.querySelectorAll(".topic-btn").forEach(b => b.classList.remove("active"));
-    activeTopic = null;
   });
 
-  // ── Init ──────────────────────────────────────────────────────────────────────
   loadPodcasts();
 </script>
 </body>
