@@ -512,6 +512,9 @@
     askBtn.textContent = "Asking...";
     answerCard.classList.add("visible");
     answerText.innerHTML = '<span class="typing-cursor"></span>';
+    digDeeper.style.display = "none";
+
+    let answer = "";   // declared outside try so finally can read it
 
     try {
       const resp = await fetch(`${API_BASE}/ask`, {
@@ -524,7 +527,7 @@
 
       const reader  = resp.body.getReader();
       const decoder = new TextDecoder();
-      let   answer  = "";
+      answer = "";
       answerText.innerHTML = "";
 
       while (true) {

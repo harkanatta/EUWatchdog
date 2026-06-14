@@ -142,9 +142,9 @@ def ask(req: AskRequest):
 Answer questions using ONLY the transcript excerpts provided below.
 Always cite which episode your answer comes from, e.g. "(Episode 12: Title)".
 If the answer isn't in the excerpts, say so honestly — don't make things up.
-Be concise and direct.
+Keep your answer brief — 3 to 5 sentences maximum.
 Always respond in the same language the user asked their question in.
-At the end of every answer, add a short section titled "Dig deeper" that suggests 2-3 specific follow-up questions the user could ask to learn more — based on what the transcripts touched on but didn't fully cover."""
+After your answer, add a section on a new line titled exactly "Dig deeper:" followed by 2-3 short follow-up questions as a numbered list, based on what the transcripts touched on but didn't fully cover."""
 
     user_prompt = f"""Transcript excerpts:
 
@@ -158,7 +158,7 @@ Question: {req.question}"""
     def generate():
         with claude_client.messages.stream(
             model=CHAT_MODEL,
-            max_tokens=600,
+            max_tokens=900,
             system=system_prompt,
             messages=[{"role": "user", "content": user_prompt}],
         ) as stream:
