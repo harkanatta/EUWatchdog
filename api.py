@@ -143,7 +143,8 @@ Answer questions using ONLY the transcript excerpts provided below.
 Always cite which episode your answer comes from, e.g. "(Episode 12: Title)".
 If the answer isn't in the excerpts, say so honestly — don't make things up.
 Be concise and direct.
-Always respond in the same language the user asked their question in."""
+Always respond in the same language the user asked their question in.
+At the end of every answer, add a short section titled "Dig deeper" that suggests 2-3 specific follow-up questions the user could ask to learn more — based on what the transcripts touched on but didn't fully cover."""
 
     user_prompt = f"""Transcript excerpts:
 
